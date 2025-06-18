@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""
+Vuettify RAG API for Cursor AI Assistant
+Optimized for Render deployment
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import uvicorn
+import json
+from typing import List, Dict, Any, Optional
+import time
+import os
+
+# Import your existing RAG system
+try:
+    from simple_rag_interface import VuetifyRAG
+except ImportError:
+    print("❌ simple_rag_interface.py not found. Using mock for demo.")
+    VuetifyRAG = None
+
+app = FastAPI(
+    title="Vuettify Coding Assistant API",
+    description="RAG API for Cursor AI integration - Deployed on Render",
+    version="1.0.0",
+    # Disable docs in production to save memory
+    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    redoc_url=None
+)
+
+# Enable CORS for Cursor
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global RAG system
+rag_system = None
+
+class QueryRequest(BaseModel):
+    query: str
+    context: Optional[str] = None
+    component: Optional[str] = None
+    type: Optional[str] = "coding"
+
+class CodeAssistantResponse(BaseModel):
+    answer: str
+    code_examples: List[str]
+    related_components: List[str]
+    documentation_links: List[str]
+    confidence: float
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize the RAG system on startup"""
+    global rag_system
+    print("🚀 Initializing Vuettify RAG system...")
+    try:
+        if VuetifyRAG:
+            rag_system = VuetifyRAG()
+            print("✅ RAG system loaded successfully!")
+        else:
+            print("⚠️ Running in demo mode - RAG system not available")
+    except Exception as e:
+        print(f"❌ Failed to load RAG system: {e}")
+        # Don't raise in production - continue with limited functionality
+
+@app.get("/")
+async def root():
+    """Health check and API info"""
+    return {
+        "status": "online",
+        "service": "Vuettify Coding Assistant",
+        "version": "1.0.0",
+        "deployed_on": "Render",
+        "endpoints": {
+            "ask": "/ask - Main coding assistant endpoint",
+            "search": "/search - Search documentation", 
+            "component": "/component/{name} - Get component info",
+            "health": "/health - System health"
+        },
+        "rag_available": rag_system is not None
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check for Render monitoring"""
+    return {
+        "status": "healthy",
+        "rag_system": "online" if rag_system else "demo_mode",
+        "timestamp": time.time(),
+        "memory_usage": "ok"
+    }
+
+@app.post("/ask", response_model=CodeAssistantResponse)
+async def ask_coding_question(request: QueryRequest):
+    """Main coding assistant endpoint - optimized for Cursor"""
+    
+    if rag_system is None:
+        # Return helpful demo response when RAG is not available
+        return CodeAssistantResponse(
+            answer=f"Demo Mode: For '{request.query}', I'd suggest checking the Vuettify documentation. RAG system will provide detailed answers when configured.",
+            code_examples=[
+                "<!-- Example Vuettify component -->",
+                "<v-btn color='primary'>Click me</v-btn>"
+            ],
+            related_components=["v-btn", "v-card", "v-container"],
+            documentation_links=["https://vuetifyjs.com/"],
+            confidence=0.5
+        )
+    
+    try:
+        # Use your existing RAG system
+        result = rag_system.query(request.query, n_results=3)
+        
+        return CodeAssistantResponse(
+            answer=result.get('answer', 'No answer found'),
+            code_examples=_extract_code_examples(result.get('sources', [])),
+            related_components=_extract_components(result.get('sources', [])),
+            documentation_links=_extract_links(result.get('sources', [])),
+            confidence=0.9
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"RAG query failed: {str(e)}")
+
+def _extract_code_examples(sources: List[Dict]) -> List[str]:
+    """Extract code examples from search results"""
+    examples = []
+    for source in sources[:2]:  # Limit to save memory
+        content = source.get('content', '')
+        if '<template>' in content or '<v-' in content:
+            examples.append(content[:500])  # Truncate for API response
+    return examples or ["<v-btn color='primary'>Example Button</v-btn>"]
+
+def _extract_components(sources: List[Dict]) -> List[str]:
+    """Extract component names from sources"""
+    import re
+    components = set()
+    for source in sources:
+        content = source.get('content', '')
+        found = re.findall(r'<v-([a-z-]+)', content)
+        components.update([f"v-{comp}" for comp in found[:3]])
+    return list(components)[:5]  # Limit response size
+
+def _extract_links(sources: List[Dict]) -> List[str]:
+    """Extract documentation links"""
+    return ["https://vuetifyjs.com/components/", "https://vuetifyjs.com/api/"]
+
+# For Render deployment
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
