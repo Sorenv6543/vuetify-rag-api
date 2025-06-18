@@ -1,0 +1,58 @@
+### Health Check
+GET http://localhost:8000/health
+
+### Basic Vuetify Query
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "How to use v-btn?",
+  "use_enhanced": false
+}
+
+### Query with Context (as requested)
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "How to change button colors?",
+  "context": "I'm building a Vue.js application with Vuetify and need to customize the theme",
+  "use_enhanced": false
+}
+
+### Component-Specific Query
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "styling and customization options",
+  "component_filter": "v-buttons",
+  "n_results": 3,
+  "use_enhanced": false
+}
+
+### Search Only (No AI Response)
+POST http://localhost:8000/search
+Content-Type: application/json
+
+{
+  "query": "v-card elevation examples",
+  "n_results": 5
+}
+
+### List Available Components
+GET http://localhost:8000/components
+
+### Database Statistics
+GET http://localhost:8000/stats
+
+### Advanced Query Example
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "How to create responsive navigation with mobile drawer?",
+  "context": "Building a responsive Vue.js app with Vuetify. Need navigation that works on both desktop and mobile. Currently using v-app-bar but need drawer for mobile.",
+  "n_results": 5,
+  "use_enhanced": false
+} 

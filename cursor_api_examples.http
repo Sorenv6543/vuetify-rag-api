@@ -1,0 +1,92 @@
+### Health Check - Cursor API Server
+GET http://localhost:8000/health
+###
+GET http://localhost:8000/
+###
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "How to make a responsive button with custom colors?",
+  "context": "<template>\n  <v-btn color=\"primary\">\n    Click me\n  </v-btn>\n</template>",
+  "type": "coding"
+}
+###
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "What are all the props for v-btn?",
+  "type": "api"
+}
+###
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "Show me v-card examples with different elevations",
+  "context": "<v-card></v-card>",
+  "type": "example"
+}
+###
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "My v-data-table is not showing any data",
+  "context": "<v-data-table :items=\"items\" :headers=\"headers\"></v-data-table>\n\ndata() {\n  return {\n    items: []\n  }\n}",
+  "type": "troubleshooting"
+}
+###
+GET http://localhost:8000/component/v-buttons
+###
+GET http://localhost:8000/component/v-cards
+###
+GET http://localhost:8000/component/v-text-fields
+###
+GET http://localhost:8000/search?q=v-btn color props&limit=3
+###
+GET http://localhost:8000/search?q=card elevation examples&limit=5
+###
+GET http://localhost:8000/search?q=form validation rules&limit=3
+###
+POST http://localhost:8000/autocomplete
+Content-Type: application/json
+
+{
+  "context": "<v-btn ",
+  "position": 7
+}
+###
+POST http://localhost:8000/autocomplete
+Content-Type: application/json
+
+{
+  "context": "<template>\n  <v-card \n",
+  "position": 19
+}
+###
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "How to create responsive navigation with drawer for mobile?",
+  "context": "<template>\n  <v-app>\n    <v-app-bar app>\n      <v-toolbar-title>My App</v-toolbar-title>\n    </v-app-bar>\n    <v-main>\n      <!-- content -->\n    </v-main>\n  </v-app>\n</template>",
+  "type": "coding"
+}
+###
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "query": "How to customize Vuetify theme colors?",
+  "context": "// vuetify.js\nimport { createVuetify } from 'vuetify'\n\nexport default createVuetify({\n  // need to add custom theme here\n})",
+  "type": "coding"
+} 
+
+HTTP/1.1 200  - OK
+date: Wed, 18 Jun 2025 11:44:31 GMT
+server: uvicorn
+content-length: 1518
+content-type: application/json
+connection: close
