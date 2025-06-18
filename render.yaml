@@ -1,14 +1,16 @@
-services:
-  - type: web
-    name: vuettify-rag-api
-    env: python
-    region: oregon
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.13.1
-      - key: ENVIRONMENT
-        value: production
-    healthCheckPath: /health
+envVars:
+  - key: PYTHON_VERSION
+    value: 3.13.11
+
+  - key: ENVIRONMENT
+    value: production
+
+  - key: PORT
+    value: PORT
+
+  - key: DB_URL
+    fromDatabase:
+      name: mydb
+      property: connectionString
+
+
